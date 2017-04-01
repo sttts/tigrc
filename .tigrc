@@ -1,3 +1,11 @@
+# settings
+set commit-order = topo
+set diff-highlight = true
+set main-view	= line-number:no,interval=5 id:yes date:custom,format="%y%m%d %H:%M" author:abbreviated commit-title:yes,graph,refs,overflow=no
+
+set main-options = --exclude=refs/stash --exclude=refs/pr
+
+# keys
 bind diff <Up> move-up
 bind diff <Down> move-down
 
@@ -6,7 +14,7 @@ bind generic	<C-U>	move-page-up
 bind generic	<PgDown> move-half-page-down
 bind generic	<Space>	move-half-page-down
 
-bind generic	E	@gogland %(file):%(lineno)
+bind generic	<Ctrl-E> @gogland %(file):%(lineno)
 bind generic	e	@subl %(file):%(lineno)
 
 bind diff j previous
@@ -14,6 +22,64 @@ bind diff k next
 
 bind status A !?git commit --amend
 
+bind generic G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
+bind main G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
+bind main T !bash -c 'TAG="%(prompt Enter new tag name: )"; git tag "${TAG}" %(commit) || (read -n 1 -p "Force [y/n]? " X; test $X = "y" && git tag "${TAG}" %(commit) -f)'
+bind main ! !tig-delete.sh "%(commit)"
+bind main <Del> !tig-delete.sh "%(commit)"
+bind main <Ctrl-R> !?bash -c 'git rebase HEAD "%(commit)" -i'
+bind main B @git branch "%(prompt Enter new branch name: )" "%(commit)"
+bind main <Ctrl-C> ?git cherry-pick "%(commit)"
+bind main C !tig-checkout.sh "%(commit)"
+bind generic r refresh
+
+# colors
 color date			27	default
 color cursor		22  green
 color graph-commit	33	default
+
+color main-tag			red	default
+color main-local-tag	magenta	default
+color main-remote		cyan default
+color main-ref			87 default
+color main-head			226 default bold
+color main-tracked		39 default
+color diff-stat			33 default
+
+color "index "			cyan default
+color "@@"				cyan default
+color "commit "			black default
+color "Refs: "			cyan default
+color "Author: "		cyan default
+color "AuthorDate: "	cyan default
+color "Commit: "		cyan default
+color "CommitDate: "	cyan default
+
+# tig-rebase.sh: https://github.com/Nattfarinn/tig-rebase
+# Fixup with parent commit
+bind main F !tig-rebase.sh fixup %(commit)
+bind diff F !tig-rebase.sh fixup %(commit)
+
+# Squash with parent commit
+bind main S !tig-rebase.sh squash %(commit)
+bind diff S !tig-rebase.sh squash %(commit)
+
+# Rebase to move commit up
+bind main K !tig-rebase.sh ascend %(commit)
+bind diff K !tig-rebase.sh ascend %(commit)
+
+# Rebase to move commit down
+bind main J !tig-rebase.sh descend %(commit)
+bind diff J !tig-rebase.sh descend %(commit)
+
+# Edit commit message
+bind main R !tig-rebase.sh reword %(commit)
+bind diff R !tig-rebase.sh reword %(commit)
+
+# Abort current rebase
+bind main X !tig-rebase.sh abort
+bind diff X !tig-rebase.sh abort
+
+# Fixup with parent commit
+bind main E !tig-rebase.sh edit %(commit)
+bind diff E !tig-rebase.sh edit %(commit)

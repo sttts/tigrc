@@ -6,16 +6,16 @@ commit=$2
 
 function usage()
 {
-    echo "usage: $program fixup|ascend|descend|reword|abort HASH"
+    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit HASH"
     exit 1
 }
 
 [ "$#" -lt 1 ] && usage
 
-replace="sed -i"
+replace="gsed -i"
 
 case $action in
-    fixup|ascend|descend|reword|abort)
+    fixup|squash|ascend|descend|reword|abort|edit)
         if [ "$action" != "abort" ]; then
             if [ -z $commit ]; then
                 usage
@@ -31,17 +31,27 @@ case $action in
                 replace="$replace -e 's/pick ${current}/fixup ${current}/'"
                 GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
                 ;;
+            edit)
+                replace="$replace -e 's/pick ${current}/e ${current}/'"
+                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
+                PROMPT_PREFIX="<tig edit> " zsh -i
+                git rebase --continue
+                ;;
+            squash)
+                replace="$replace -e 's/pick ${current}/s ${current}/'"
+                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
+                ;;
             ascend)
                 replace="$replace -e 's/pick ${current}/pick BUFFER/'"
                 replace="$replace -e 's/pick ${child}/pick ${current}/'"
                 replace="$replace -e 's/pick BUFFER/pick ${child}/'"
-                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~1
+                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~1 || (printf '\a'; git rebase --abort; exit 1)
                 ;;
             descend)
                 replace="$replace -e 's/pick ${current}/pick BUFFER/'"
                 replace="$replace -e 's/pick ${parent}/pick ${current}/'"
                 replace="$replace -e 's/pick BUFFER/pick ${parent}/'"
-                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
+                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2 || (printf '\a'; git rebase --abort; exit 1)
                 ;;
             reword)
                 replace="$replace -e 's/pick ${current}/reword ${current}/'"
