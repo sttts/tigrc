@@ -27,11 +27,12 @@ bind main G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][
 bind main T !bash -c 'TAG="%(prompt Enter new tag name: )"; git tag "${TAG}" %(commit) || (read -n 1 -p "Force [y/n]? " X; test $X = "y" && git tag "${TAG}" %(commit) -f)'
 bind main ! !tig-delete.sh "%(commit)"
 bind main <Del> !tig-delete.sh "%(commit)"
-bind main <Ctrl-R> !?bash -c 'git rebase HEAD "%(commit)" -i'
+bind main <Ctrl-R> !?git rebase HEAD "%(commit)" -i
 bind main B @git branch "%(prompt Enter new branch name: )" "%(commit)"
 bind main <Ctrl-C> ?git cherry-pick "%(commit)"
 bind main C !tig-checkout.sh "%(commit)"
 bind generic r refresh
+bind main L !bash -c "git reflog --pretty=raw | tig --pretty=raw"
 
 # colors
 color date			27	default
