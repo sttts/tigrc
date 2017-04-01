@@ -1,0 +1,19 @@
+bind diff <Up> move-up
+bind diff <Down> move-down
+
+bind generic	<C-D>	move-page-down
+bind generic	<C-U>	move-page-up
+bind generic	<PgDown> move-half-page-down
+bind generic	<Space>	move-half-page-down
+
+bind generic	E	@gogland %(file):%(lineno)
+bind generic	e	@subl %(file):%(lineno)
+
+bind diff j previous
+bind diff k next
+
+bind status A !?git commit --amend
+
+color date			27	default
+color cursor		22  green
+color graph-commit	33	default
