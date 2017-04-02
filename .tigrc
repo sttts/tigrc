@@ -8,9 +8,35 @@ set main-options = --exclude=refs/stash --exclude=refs/pr
 # keys
 bind diff <Up> move-up
 bind diff <Down> move-down
+bind diff <Left> :?^@@
+bind diff <Right> :/^@@
+bind diff . :toggle diff-context +1
+bind diff , :toggle diff-context -1
+
+bind stage <Up> move-up
+bind stage <Down> move-down
+bind stage <Left> :?^@@
+bind stage <Right> :/^@@
+bind stage s stage-split-chunk
+bind stage + stage-update-line	# Stage/unstage current line
+bind stage . :toggle diff-context +1
+bind stage , :toggle diff-context -1
+bind stage y status-update
+bind stage n :/^@@
+bind stage a @git add %(file)
+bind stage d next
+
+bind status p !git add -p %(file)
+bind status e @git add -e %(file)
+bind status u !git checkout -p %(file)
+bind status + status-update
+bind status - status-update
+bind status r @git reset %(file)
+bind status A @git add -u
 
 bind generic	<C-D>	move-page-down
 bind generic	<C-U>	move-page-up
+bind generic	<PgUp> move-half-page-up
 bind generic	<PgDown> move-half-page-down
 bind generic	<Space>	move-half-page-down
 
@@ -20,7 +46,7 @@ bind generic	e	@subl %(file):%(lineno)
 bind diff j previous
 bind diff k next
 
-bind status A !?git commit --amend
+bind status <Ctrl-A> !?git commit --amend
 
 bind generic G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
 bind main G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
