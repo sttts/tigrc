@@ -73,6 +73,10 @@ bind diff K !tig-rebase.sh ascend %(commit)
 bind main J !tig-rebase.sh descend %(commit)
 bind diff J !tig-rebase.sh descend %(commit)
 
+# Rebase to move a commit somewhere else
+bind main m @git tag -f mark %(commit)
+bind main M !tig-rebase.sh move %(commit)
+
 # Edit commit message
 bind main R !tig-rebase.sh reword %(commit)
 bind diff R !tig-rebase.sh reword %(commit)

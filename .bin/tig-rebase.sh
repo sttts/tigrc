@@ -6,7 +6,7 @@ commit=$2
 
 function usage()
 {
-    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit HASH"
+    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit|move HASH"
     exit 1
 }
 
@@ -15,7 +15,7 @@ function usage()
 replace="gsed -i"
 
 case $action in
-    fixup|squash|ascend|descend|reword|abort|edit)
+    fixup|squash|ascend|descend|reword|abort|edit|move)
         if [ "$action" != "abort" ]; then
             if [ -z $commit ]; then
                 usage
@@ -40,6 +40,14 @@ case $action in
             squash)
                 replace="$replace -e 's/pick ${current}/s ${current}/'"
                 GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
+                ;;
+            move)
+                set -x
+                test "${mark}" = "${current}" && exit 0g
+                mark=$(git log --pretty=format:%h mark -1) || exit 1
+                replace="$replace -e '/pick ${mark}/d;s/pick ${current} .*/pick ${current}\\npick ${mark}\\nx git tag -f mark/'"
+                base=$(git merge-base ${current} ${mark})
+                GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 || (printf '\a'; git rebase --abort; exit 1)
                 ;;
             ascend)
                 replace="$replace -e 's/pick ${current}/pick BUFFER/'"
