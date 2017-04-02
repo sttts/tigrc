@@ -28,7 +28,7 @@ bind stage d next
 
 bind status p !git add -p %(file)
 bind status e @git add -e %(file)
-bind status u !git checkout -p %(file)
+bind status U !git checkout -p %(file)
 bind status + status-update
 bind status - status-update
 bind status r @git reset %(file)

@@ -49,7 +49,8 @@ case $action in
                 set -x
                 mark=$(git log --pretty=format:%h mark -1) || exit 1
                 test "${mark}" = "${current}" && exit 0
-                replace="$replace -e '/pick ${mark}/d;s/pick ${current} .*/pick ${current}\\npick ${mark}\\nx git tag -f mark/'"
+                test "$(git log --pretty=format:%h $(git merge-base HEAD "${mark}") -1)" = "${mark}" || exit 0
+                replace="$replace -e 's/pick ${mark} .*/noop/;s/pick ${current} .*/pick ${current}\\npick ${mark}\\nx git tag -f mark/'"
                 base=$(git merge-base ${current} ${mark})
                 GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 || (printf '\a'; git rebase --abort; exit 1)
                 ;;
