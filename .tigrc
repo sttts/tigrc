@@ -65,6 +65,10 @@ bind diff F !tig-rebase.sh fixup %(commit)
 bind main S !tig-rebase.sh squash %(commit)
 bind diff S !tig-rebase.sh squash %(commit)
 
+# Squash with parent commit
+bind main D !tig-rebase.sh drop %(commit)
+bind diff D !tig-rebase.sh drop %(commit)
+
 # Rebase to move commit up
 bind main K !tig-rebase.sh ascend %(commit)
 bind diff K !tig-rebase.sh ascend %(commit)

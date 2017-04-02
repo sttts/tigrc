@@ -6,7 +6,7 @@ commit=$2
 
 function usage()
 {
-    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit|move HASH"
+    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit|move|drop HASH"
     exit 1
 }
 
@@ -15,7 +15,7 @@ function usage()
 replace="gsed -i"
 
 case $action in
-    fixup|squash|ascend|descend|reword|abort|edit|move)
+    fixup|squash|ascend|descend|reword|abort|edit|move|drop)
         if [ "$action" != "abort" ]; then
             if [ -z $commit ]; then
                 usage
@@ -29,6 +29,10 @@ case $action in
         case $action in
             fixup)
                 replace="$replace -e 's/pick ${current}/fixup ${current}/'"
+                GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
+                ;;
+            drop)
+                replace="$replace -e 's/pick ${current} .*/noop/'"
                 GIT_SEQUENCE_EDITOR=$replace git rebase -i ${current}~2
                 ;;
             edit)
