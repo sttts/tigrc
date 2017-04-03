@@ -25,8 +25,11 @@ bind stage y status-update
 bind stage n :/^@@
 bind stage a @git add %(file)
 bind stage d next
+bind stage p !git add -p %(file)
+bind stage P !git add -p
 
 bind status p !git add -p %(file)
+bind status P !git add -p
 bind status e @git add -e %(file)
 bind status U !git checkout -p %(file)
 bind status + status-update
@@ -50,11 +53,11 @@ bind status <Ctrl-A> !?git commit --amend
 
 bind generic G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
 bind main G @bash -c "open 'https://'$(git remote -v | grep -Eo 'github.com[:/][^.]+' | head -1 | tr : / | cut -d' ' -f1)'/commit/%(commit)'"
-bind main T !bash -c 'TAG="%(prompt Enter new tag name: )"; git tag "${TAG}" %(commit) || (read -n 1 -p "Force [y/n]? " X; test $X = "y" && git tag "${TAG}" %(commit) -f)'
+bind main T !bash -c 'TAG="%(prompt Enter new tag name: )"; git tag "${TAG}" %(commit) || { read -n 1 -p "Force [y/n]? " X; test "$X" = "y" && git tag "${TAG}" %(commit) -f; }'
 bind main ! !tig-delete.sh "%(commit)"
 bind main <Del> !tig-delete.sh "%(commit)"
-bind main R !?git rebase HEAD "%(commit)" -i
-bind main B @git branch "%(prompt Enter new branch name: )" "%(commit)"
+bind main R !?git rebase --onto HEAD mark "%(commit)" -i
+bind main B !bash -xc 'B="%(prompt Enter new branch name: )"; test -z "$B" && exit 1; git branch "$B" "%(commit)" || { read -n 1 -p "Exists already. Force [y/n]? " X; test "$X" != "y" && exit 1; git branch -D "$B" && git branch -f -vv "$B" "%(commit)"; }'
 bind main P ?git cherry-pick "%(commit)"
 bind main C !tig-checkout.sh "%(commit)"
 bind generic r refresh
@@ -118,3 +121,7 @@ bind diff X !tig-rebase.sh abort
 # Fixup with parent commit
 bind main E !tig-rebase.sh edit %(commit)
 bind diff E !tig-rebase.sh edit %(commit)
+
+# Split commit
+bind main L !tig-rebase.sh split %(commit)
+bind diff L !tig-rebase.sh split %(commit)
