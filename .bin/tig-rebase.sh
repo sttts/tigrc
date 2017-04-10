@@ -6,7 +6,7 @@ commit=$2
 
 function usage()
 {
-    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit|move|drop|split HASH"
+    echo "usage: $program fixup|squash|ascend|descend|reword|abort|edit|move|drop|split|move-fixup|move-squash HASH"
     exit 1
 }
 
@@ -23,6 +23,9 @@ function shell_rebase_continue () {
             test "$X" = "a" && { git rebase --abort; exit 1; }
             test "$X" != "y" && continue
         fi
+        if [ ! -f .git/rebase-merge/done ]; then
+            break
+        fi
         git rebase --continue && break
         printf '\a'
         read -n 1 -p "Abort [y/n]? " X
@@ -31,7 +34,7 @@ function shell_rebase_continue () {
 }
 
 case $action in
-    fixup|squash|ascend|descend|reword|abort|edit|move|drop|split)
+    fixup|squash|ascend|descend|reword|abort|edit|move|drop|split|move-fixup|move-squash)
         if [ "$action" != "abort" ]; then
             if [ -z $commit ]; then
                 usage
@@ -73,7 +76,31 @@ case $action in
                 test "$(git log --pretty=format:%h $(git merge-base HEAD "${mark}") -1)" = "${mark}" || exit 0
                 replace="$replace -e 's/pick ${mark} .*/noop/;s/pick ${current} .*/pick ${current}\\npick ${mark}\\nx git tag -f mark/'"
                 base=$(git merge-base ${current} ${mark})
-                GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 || { printf '\a'; git status; git rebase --abort; exit 1; }
+                GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 && exit 0
+                printf '\a'
+                shell_rebase_continue
+                ;;
+            move-fixup)
+                set -x
+                mark=$(git log --pretty=format:%h mark -1) || exit 1
+                test "${mark}" = "${current}" && exit 0
+                test "$(git log --pretty=format:%h $(git merge-base HEAD "${mark}") -1)" = "${mark}" || exit 0
+                replace="$replace -e 's/pick ${mark} .*/noop/;s/pick ${current} .*/pick ${current}\\nf ${mark}\\nx git tag -f mark/'"
+                base=$(git merge-base ${current} ${mark})
+                GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 && exit 0
+                printf '\a'
+                shell_rebase_continue
+                ;;
+            move-sqash)
+                set -x
+                mark=$(git log --pretty=format:%h mark -1) || exit 1
+                test "${mark}" = "${current}" && exit 0
+                test "$(git log --pretty=format:%h $(git merge-base HEAD "${mark}") -1)" = "${mark}" || exit 0
+                replace="$replace -e 's/pick ${mark} .*/noop/;s/pick ${current} .*/pick ${current}\\ns ${mark}\\nx git tag -f mark/'"
+                base=$(git merge-base ${current} ${mark})
+                GIT_SEQUENCE_EDITOR="$replace" git rebase -i ${base}~2 && exit 0
+                printf '\a'
+                shell_rebase_continue
                 ;;
             ascend)
                 replace="$replace -e 's/pick ${current}/pick BUFFER/'"
